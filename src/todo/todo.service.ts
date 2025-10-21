@@ -19,34 +19,24 @@ export class TodoService {
   }
 
   async findAll(): Promise<Todo[]> {
-    const cached = await this.cacheManager.get<Todo[]>('todos:all');
-    if (cached) return cached;
-
-    const todos = await this.prisma.todo.findMany();
-    await this.cacheManager.set('todos:all', todos, 60);
-    return todos;
+    return this.prisma.todo.findMany();
   }
 
   async findOne(id: number): Promise<Todo | null> {
-    const cached = await this.cacheManager.get<Todo>(`todos:${id}`);
-    if (cached) return cached;
-
-    const todo = await this.prisma.todo.findUnique({ where: { id } });
-    if (todo) await this.cacheManager.set(`todos:${id}`, todo, 60);
-    return todo;
+    return this.prisma.todo.findUnique({ where: { id } });
   }
 
   async update(id: number, data: Prisma.TodoUpdateInput): Promise<Todo> {
     const todo = await this.prisma.todo.update({ where: { id }, data });
     await this.cacheManager.del('todos:all');
-    await this.cacheManager.del(`todos:${id}`);
+    await this.cacheManager.del(`GET/todos/${id}`);
     return todo;
   }
 
   async remove(id: number): Promise<Todo> {
     const todo = await this.prisma.todo.delete({ where: { id } });
     await this.cacheManager.del('todos:all');
-    await this.cacheManager.del(`todos:${id}`);
+    await this.cacheManager.del(`GET/todos/${id}`);
     return todo;
   }
 }
