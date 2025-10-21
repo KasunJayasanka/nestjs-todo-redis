@@ -1,98 +1,113 @@
-<p align="center">
-  <a href="http://nestjs.com/" target="blank"><img src="https://nestjs.com/img/logo-small.svg" width="120" alt="Nest Logo" /></a>
-</p>
+# Todo API Cache
 
-[circleci-image]: https://img.shields.io/circleci/build/github/nestjs/nest/master?token=abc123def456
-[circleci-url]: https://circleci.com/gh/nestjs/nest
+A RESTful API for managing todos, built with NestJS, Prisma, and Redis for caching. This project implements a todo application with CRUD operations, leveraging PostgreSQL as the database and Redis for caching to optimize performance.
 
-  <p align="center">A progressive <a href="http://nodejs.org" target="_blank">Node.js</a> framework for building efficient and scalable server-side applications.</p>
-    <p align="center">
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/v/@nestjs/core.svg" alt="NPM Version" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/l/@nestjs/core.svg" alt="Package License" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/dm/@nestjs/common.svg" alt="NPM Downloads" /></a>
-<a href="https://circleci.com/gh/nestjs/nest" target="_blank"><img src="https://img.shields.io/circleci/build/github/nestjs/nest/master" alt="CircleCI" /></a>
-<a href="https://discord.gg/G7Qnnhy" target="_blank"><img src="https://img.shields.io/badge/discord-online-brightgreen.svg" alt="Discord"/></a>
-<a href="https://opencollective.com/nest#backer" target="_blank"><img src="https://opencollective.com/nest/backers/badge.svg" alt="Backers on Open Collective" /></a>
-<a href="https://opencollective.com/nest#sponsor" target="_blank"><img src="https://opencollective.com/nest/sponsors/badge.svg" alt="Sponsors on Open Collective" /></a>
-  <a href="https://paypal.me/kamilmysliwiec" target="_blank"><img src="https://img.shields.io/badge/Donate-PayPal-ff3f59.svg" alt="Donate us"/></a>
-    <a href="https://opencollective.com/nest#sponsor"  target="_blank"><img src="https://img.shields.io/badge/Support%20us-Open%20Collective-41B883.svg" alt="Support us"></a>
-  <a href="https://twitter.com/nestframework" target="_blank"><img src="https://img.shields.io/twitter/follow/nestframework.svg?style=social&label=Follow" alt="Follow us on Twitter"></a>
-</p>
-  <!--[![Backers on Open Collective](https://opencollective.com/nest/backers/badge.svg)](https://opencollective.com/nest#backer)
-  [![Sponsors on Open Collective](https://opencollective.com/nest/sponsors/badge.svg)](https://opencollective.com/nest#sponsor)-->
+## Features
+- **CRUD Operations**: Create, read, update, and delete todos via REST endpoints.
+- **Caching**: Uses Redis with `@nestjs/cache-manager` for caching `GET` requests (`/todos` and `/todos/:id`) with a 60-second TTL, implemented via `CacheInterceptor`.
+- **Database**: Integrates Prisma with PostgreSQL for data persistence.
+- **Scalable Architecture**: Modular NestJS structure with separate `TodoModule` and `PrismaModule`.
 
-## Description
+## Tech Stack
+- **NestJS**: Backend framework for building the REST API.
+- **Prisma**: ORM for PostgreSQL database interactions.
+- **Redis**: Caching layer for improved performance.
+- **PostgreSQL**: Relational database for storing todo data.
+- **Docker**: Containerized services for PostgreSQL and Redis.
 
-[Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
-
-## Project setup
-
-```bash
-$ npm install
+## Project Structure
+```
+todo-cache-app/
+├── src/
+│   ├── app.controller.ts       # Root controller for health check
+│   ├── app.module.ts          # Root module with Redis cache configuration
+│   ├── app.service.ts         # Basic service for root endpoint
+│   ├── main.ts                # Application bootstrap
+│   ├── prisma/
+│   │   ├── prisma.module.ts   # Prisma module for database service
+│   │   └── prisma.service.ts  # Prisma client setup
+│   └── todo/
+│       ├── todo.controller.ts # Todo API endpoints with cache interceptors
+│       ├── todo.module.ts     # Todo module with Prisma dependency
+│       ├── todo.service.ts    # Todo business logic with cache invalidation
+│       └── *.spec.ts          # Test files
+├── prisma/
+│   └── schema.prisma          # Prisma schema for Todo model
+├── docker-compose.yml         # Docker setup for PostgreSQL and Redis
+└── README.md                  # Project documentation
 ```
 
-## Compile and run the project
+## Prerequisites
+- Node.js (v16 or higher)
+- Docker and Docker Compose
+- npm or yarn
 
+## Setup Instructions
+
+### 1. Clone the Repository
 ```bash
-# development
-$ npm run start
-
-# watch mode
-$ npm run start:dev
-
-# production mode
-$ npm run start:prod
+git clone <repository-url>
+cd todo-cache-app
 ```
 
-## Run tests
-
+### 2. Install Dependencies
 ```bash
-# unit tests
-$ npm run test
-
-# e2e tests
-$ npm run test:e2e
-
-# test coverage
-$ npm run test:cov
+npm install
 ```
 
-## Deployment
-
-When you're ready to deploy your NestJS application to production, there are some key steps you can take to ensure it runs as efficiently as possible. Check out the [deployment documentation](https://docs.nestjs.com/deployment) for more information.
-
-If you are looking for a cloud-based platform to deploy your NestJS application, check out [Mau](https://mau.nestjs.com), our official platform for deploying NestJS applications on AWS. Mau makes deployment straightforward and fast, requiring just a few simple steps:
-
-```bash
-$ npm install -g @nestjs/mau
-$ mau deploy
+### 3. Set Up Environment Variables
+Create a `.env` file in the project root and add the following:
+```env
+DATABASE_URL=postgresql://user:password@localhost:5432/todo_db?schema=public
 ```
 
-With Mau, you can deploy your application in just a few clicks, allowing you to focus on building features rather than managing infrastructure.
+### 4. Run Docker Services
+Start PostgreSQL and Redis using Docker Compose:
+```bash
+docker-compose up -d
+```
 
-## Resources
+### 5. Run Prisma Migrations
+Generate and apply database migrations:
+```bash
+npx prisma generate
+npx prisma migrate dev --name init
+```
 
-Check out a few resources that may come in handy when working with NestJS:
+### 6. Start the Application
+```bash
+npm run start:dev
+```
+The API will be available at `http://localhost:3000`.
 
-- Visit the [NestJS Documentation](https://docs.nestjs.com) to learn more about the framework.
-- For questions and support, please visit our [Discord channel](https://discord.gg/G7Qnnhy).
-- To dive deeper and get more hands-on experience, check out our official video [courses](https://courses.nestjs.com/).
-- Deploy your application to AWS with the help of [NestJS Mau](https://mau.nestjs.com) in just a few clicks.
-- Visualize your application graph and interact with the NestJS application in real-time using [NestJS Devtools](https://devtools.nestjs.com).
-- Need help with your project (part-time to full-time)? Check out our official [enterprise support](https://enterprise.nestjs.com).
-- To stay in the loop and get updates, follow us on [X](https://x.com/nestframework) and [LinkedIn](https://linkedin.com/company/nestjs).
-- Looking for a job, or have a job to offer? Check out our official [Jobs board](https://jobs.nestjs.com).
+## API Endpoints
+- **POST /todos**: Create a new todo
+  - Body: `{ "title": "string", "completed": boolean }`
+- **GET /todos**: Retrieve all todos (cached, 60s TTL)
+- **GET /todos/:id**: Retrieve a todo by ID (cached, 60s TTL)
+- **PATCH /todos/:id**: Update a todo
+  - Body: `{ "title": "string", "completed": boolean }`
+- **DELETE /todos/:id**: Delete a todo
+- **GET /**: Health check endpoint (returns "Hello World!")
 
-## Support
+## Caching
+- The `GET /todos` endpoint uses the cache key `todos:all` with a 60-second TTL.
+- The `GET /todos/:id` endpoint is cached with a 60-second TTL, with invalidation on `PATCH` and `DELETE` operations.
+- Cache invalidation occurs in `TodoService` for `create`, `update`, and `remove` operations to ensure data consistency.
 
-Nest is an MIT-licensed open source project. It can grow thanks to the sponsors and support by the amazing backers. If you'd like to join them, please [read more here](https://docs.nestjs.com/support).
+## Docker Services
+- **PostgreSQL**: Runs on `localhost:5432` with database `todo_db`, user `user`, and password `password`.
+- **Redis**: Runs on `localhost:6379` for caching.
 
-## Stay in touch
+## Running Tests
+```bash
+npm run test
+```
 
-- Author - [Kamil Myśliwiec](https://twitter.com/kammysliwiec)
-- Website - [https://nestjs.com](https://nestjs.com/)
-- Twitter - [@nestframework](https://twitter.com/nestframework)
+## Contributing
+1. Create a feature branch: `git checkout -b feat/<feature-name>`
+2. Commit changes: `git commit -m "feat(<scope>): <description>"`
+3. Push and create a pull request.
 
 ## License
-
-Nest is [MIT licensed](https://github.com/nestjs/nest/blob/master/LICENSE).
+MIT License
