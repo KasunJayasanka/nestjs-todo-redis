@@ -7,7 +7,9 @@ import {
   Param,
   Body,
   ParseIntPipe,
+  UseInterceptors,
 } from '@nestjs/common';
+import { CacheInterceptor, CacheKey, CacheTTL } from '@nestjs/cache-manager'; // Correct import
 import { TodoService } from './todo.service';
 import { Prisma } from '@prisma/client';
 
@@ -20,11 +22,16 @@ export class TodoController {
     return this.todoService.create(data);
   }
 
+  @UseInterceptors(CacheInterceptor)
+  @CacheKey('todos:all')
+  @CacheTTL(60) // 60 seconds
   @Get()
   findAll() {
     return this.todoService.findAll();
   }
 
+  @UseInterceptors(CacheInterceptor)
+  @CacheTTL(60) // 60 seconds
   @Get(':id')
   findOne(@Param('id', ParseIntPipe) id: number) {
     return this.todoService.findOne(id);
